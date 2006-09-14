@@ -3,12 +3,12 @@
 ;; x a u e n e u a x  - nqdataflow
 ;;
 ;; copyright (C) 2004 FoAM vzw
-;;  You are granted the rights to distribute and use this software
-;;  under the terms of the Lisp Lesser GNU Public License, known 
-;;  as the LLGPL. The LLGPL consists of a preamble and the LGPL. 
-;;  Where these conflict, the preamble takes precedence. The LLGPL
-;;  is available online at http://opensource.franz.com/preamble.html 
-;;  and is distributed with this code (see: LICENCE and LGPL files)
+;;  You are granted the rights to distribute and use this software 
+;;  under the terms of the GNU Lesser General Public License as 
+;;  published by the Free Software Foundation; either version 2.1 of
+;;  the License, or (at your option] any later version. The LGPL is
+;;  distributed with this code (see: LICENCE) and available online 
+;;  at http://www.gnu.org/copyleft/lesser.html
 
 ;; authors
 ;;  - nik gaffney <nik@fo.am>
@@ -22,15 +22,15 @@
 ;;  quite scheme -> nqdataflow
 ;;
 ;;  keyboard controls
-;;   n - adds new node, connected to a selected node
-;;   c - conencts 2 selected nodes
-;;   d - disconnects selected node
+;;   C-n - adds new node, connected to a selected node
+;;   C-c - conencts 2 selected nodes
+;;   C-d - disconnects selected node
 ;;   delete - deletes node
 ;;   enter - evaluates current node 
 
 ;; to do
 ;;  - deal with evaluation order display
-;;  - check directions of node connection with 'c'
+;;  - check directions of node connection with 'C-c'
 ;;  - multiple connections -> clarify
 ;;  - deal with circularity
 
@@ -38,7 +38,7 @@
 ;;  2006-09-11
 ;;  - scraped into coherence from various sources
 
-(require (lib "graph.ss" "mrlib")
+(require "graph.scm"
          "qfwfq.scm") 
 
 (define xauen-pasteboard%
@@ -61,7 +61,7 @@
 (send ec set-editor p)
 (define dc (send ec get-dc))
 
-;; text input calllback - spit and polish
+;; text input callback - spit and polish
 ;;     beware hardcoded node & pasteboard & lack of error checking
 (define (parse-text-input tf event)
   (if (eqv? (send event get-event-type) 'text-field-enter)
@@ -86,28 +86,33 @@
          [Gx (send event get-x)] 
          [Gy (send event get-y)])
     (let-values ([(x y) (send target editor-location-to-dc-location Gx Gy)])
-      (debug 1 "key[de]maping->key: ~a ~%" key)
+      (debug 3 "key[de]maping->key: ~a ~%" key)
       (debug 1 "selected-snip: ~a ~%" selected-snip)
+      (if (send event get-control-down)
       (case key
-        [(#\n) ;; n fr 'new'
+        [(#\n) ;; C-n fr 'new'
          (debug 1 "add: ~a" key)
          (let ([node (new node-snip%)])
            (send target insert node)
            (if selected-snip
-               (add-links node selected-snip))
-           ;;(send target move-to node x y)
+               (begin (add-links node selected-snip)
+                      ;; re.colour the tree, first [grand]child should do... 
+                      (colour-tree (car (send selected-snip get-children)) p)))
+           (send target move-to node x y)
            )]
-        [(#\c) ;; c fr 'connect'
+        [(#\c) ;; C-c fr 'connect'
          (let ([next (send target find-next-selected-snip selected-snip)])
            (debug 1 "next-snip: ~a ~%" next)
            (add-links selected-snip next))]
-        [(#\d) ;; d fr 'disconnect'
+        [(#\d) ;; C-d fr 'disconnect'
          (let ([next (send target find-next-selected-snip selected-snip)])
            (send selected-snip remove-child next)
            (send selected-snip remove-parent next)
            (send next remove-parent selected-snip)
-           (send next remove-child selected-snip))] 
-        ))))
+           (send next remove-child selected-snip))]
+        [(#\z) ;; C-z re.colour
+         (colour-tree selected-snip p)]
+        )))))
 
 ;; basic nodewrenching
 (define n1 (new output-snip%))

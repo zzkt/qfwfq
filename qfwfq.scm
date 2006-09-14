@@ -3,12 +3,12 @@
 ;; a simple setup for testing ideas about visual programming
 ;;
 ;; copyright (C) 2004 FoAM vzw
-;;  You are granted the rights to distribute and use this software
-;;  under the terms of the Lisp Lesser GNU Public License, known 
-;;  as the LLGPL. The LLGPL consists of a preamble and the LGPL. 
-;;  Where these conflict, the preamble takes precedence. The LLGPL
-;;  is available online at http://opensource.franz.com/preamble.html 
-;;  and is distributed with this code (see: LICENCE and LGPL files)
+;;  You are granted the rights to distribute and use this software 
+;;  under the terms of the GNU Lesser General Public License as 
+;;  published by the Free Software Foundation; either version 2.1 of
+;;  the License, or (at your option] any later version. The LGPL is
+;;  distributed with this code (see: LICENCE) and available online 
+;;  at http://www.gnu.org/copyleft/lesser.html
 
 ;; authors
 ;;  - nik gaffney <nik@fo.am>
@@ -29,9 +29,11 @@
 ;; changes
 ;;  2006-09-11
 ;;  - scraped into coherence from various sources
+;;  2006-09-14
+;;  - fixed tree-colouring and traversal
 
 (module qfwfq mzscheme
-  (require (lib "graph.ss" "mrlib")
+  (require "graph.scm" ;modified from (lib "graph.ss" "mrlib")
            (lib "class.ss")
            (lib "list.ss")         
            (lib "string.ss")
@@ -48,6 +50,7 @@
            set-node-value
            get-node-value
            draw-parse-tree
+           colour-tree
            wobble-tree
            eval-tree
            tree->sexp
@@ -59,7 +62,9 @@
     (let ([debugging #t] ; toggle #t/#f
           [debug-level 1]) ; higher is more info
       (if (and debugging (>= debug-level level))
-          (printf fstring fargs))))  
+          (if (list? fargs)
+              (apply printf (cons fstring fargs))
+              (printf fstring fargs)))))  
   
   ;;;;;;;;; ;; ;;     ;; 
   ;;
@@ -89,15 +94,17 @@
     (class (graph-snip-mixin editor-snip%)
       (init-field (value ()))
       (init-field (dirty #f))
-      (public set-value besmirch clean)
-      (define (set-value v)
+      (inherit-field parent-links)
+      ;(inherit link)
+      
+      (define/public (set-value v)
         (set! value v))
-      (define (besmirch)
+      (define/public (besmirch)
         (debug 2 "smirched: ~a ~%" this)
         (set! dirty #t)
         (map (lambda (x) (send x besmirch))
              (send this get-children)))
-      (define (clean)
+      (define/public (clean)
         (set! dirty #f))
       ;; should be more coarse grained than 'on-event', but what?+
       (define/override (on-char dc x y editorx editory event)
@@ -108,13 +115,22 @@
         (super on-char dc x y editorx editory event))
       (define/override (own-caret own-it?)
         (if own-it?
-            (debug 1 "node: ~a got keybrd focus~%" this)
+            (debug 3 "node: ~a got keybrd focus~%" this)
             (if dirty 
-                (begin (debug 1 "node: ~a lost keybrd focus~%" this)
+                (begin (debug 3 "node: ~a lost keybrd focus~%" this)
                        (send this besmirch)
                        (send this clean))))
         (super own-caret own-it?))
+      ;; links
+      (define/public (get-parent-links) parent-links)
       (super-new)))
+  
+  ;; .. edges? 
+  ;;  would require modifying private methods in graph. 
+  ;;  see -> draw-non-self-connection for example
+  
+  ;; maybe directly modify the list via get-parent-links
+  ;;  see -> (define-local-member-name get-parent-links)
   
   ;; an output snip will display or modify its contents when besmirched.. .
   (define output-snip%
@@ -144,6 +160,16 @@
   (define (get-node-value node)
     (send node value))
   
+  ;; convert given object to string
+  (define (to-string x)
+    (cond ((string? x) x)
+          ((char? x) (list->string (list x)))
+          ((number? x) (number->string x))
+          ((symbol? x) (symbol->string x))
+          ((list? x) (apply string-append (map to-string x))) 
+          (else (error "don't know how to convert to string: " x))))
+  
+  
   ;; decor
   ;; brushes/ pens see -> 6.15  pen%
   ;; colours -> 6.7  color-database<%>
@@ -158,15 +184,6 @@
   (define brush3 (send the-brush-list find-or-create-brush "yellow" 'solid))
   (define pen4 (send the-pen-list find-or-create-pen "DarkSeaGreen" 1 'solid))
   (define brush4 (send the-brush-list find-or-create-brush "Beige" 'solid))
-  
-  ; convert given object to string
-  (define (to-string x)
-    (cond ((string? x) x)
-          ((char? x) (list->string (list x)))
-          ((number? x) (number->string x))
-          ((symbol? x) (symbol->string x))
-          ((list? x) (apply string-append (map to-string x))) 
-          (else (error "don't know how to convert to string: " x))))
   
   ;;;;;;;;; ; ;   ;;      ;
   ;;
@@ -191,13 +208,83 @@
             ;; subtrees, or args
             (for-each
              (lambda (child)        
-               (if (list? child) 
+               (if (list? child)  
                    (draw-parse-tree child x y node pb)
                    (let ((sibling (new node-snip%)))         
                      (send pb insert sibling)
                      (add-links sibling node pen3 pen4 brush3 brush4)
                      (send (send sibling get-editor) insert (to-string child)))))
              (cdr tree))))))
+  
+  ;; tree colouring, using pens, brushes and wax.
+  ;; where the given node is the root of the tree to be traversed 
+  (define (colour-tree node pb)
+    (let ([parents (send node get-parents)])
+      (if (not (empty? parents))
+          (begin (debug 1 "tree-coloring: ~a ~%" node)
+                 (colour-links node 
+                               (list pen1 pen2 brush1 brush2)  ;; functions
+                               (list pen3 pen4 brush3 brush4)) ;; elements
+                 ;; function node  
+                 ;;   - set pens and brushes...
+                 ;; subtrees, or args
+                 (for-each
+                  (lambda (parent)        
+                    (colour-tree parent pb))
+                  parents)))))
+  
+  ;; link colouring, of each link from a given node
+  ;; *-colours are each a list of 4 pens & brushes
+  (define (colour-links node fcn-colours elt-colours)
+    (let* ([parents (send node get-parents)]
+           [links (send node get-parent-links)])
+      (let-values ([(fp1 fp2 fb1 fb2) (split-colours fcn-colours)]
+                   [(ep1 ep2 eb1 eb2) (split-colours elt-colours)])
+        (debug 1 "link-coloring: ~a  -> ~a ~%" node parents)
+        (if (not (empty? links))
+            (for-each 
+             (lambda (parent)
+               (if (empty? (send parent get-parents))
+                   ;; elements)
+                   (let ([link (find-link node parent)])    
+                     (set-colours link ep1 ep2 eb1 eb2)) 
+                   ;; functions
+                   (let ([link (find-link node parent)])  
+                     (set-colours link fp1 fp2 fb1 fb2))))   
+             parents)))))
+  
+  ;; find a link from one node to another
+  (define (find-link n1 n2)
+    (let ([links (send n1 get-parent-links)]
+          [result #f])
+      (map (lambda (link)
+             (debug 2 "finding link: ~a -> ~a~%" n2 (link-snip link))
+             (if (equal? (link-snip link) n2) 
+                 (set! result link))) links) result))
+  
+  ;; relabel
+  (define *travail* 0)
+  
+  (define (re-label! link)
+    (let ([label (link-label link)])
+      (set! *travail* (+ 1 *travail*))
+      (set-link-label! link (string-append (if label label "")
+                                           (format ".~a." *travail*)))))
+  
+  
+  ;; multicolour
+  (define (set-colours link p1 p2 b1 b2)
+    (set-link-dark-pen! link p1)
+    (set-link-dark-brush! link b1)
+    (set-link-light-pen! link p2)
+    (set-link-light-brush! link b2))
+  
+  ;; return pens & brushes form a list as mulitple-values
+  (define (split-colours c)
+    (values (list-ref c 0) 
+            (list-ref c 1) 
+            (list-ref c 2) 
+            (list-ref c 3)))
   
   ;; basic layout attmepts
   

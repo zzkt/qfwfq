@@ -52,6 +52,12 @@
 ;; setup frame and windows.. 
 (define f (new frame% [label " } x a u e n e u a x { "]))
 
+(define mb (instantiate menu-bar% (f)))
+(define edit-menu (instantiate menu% ("Edit" mb)))
+(define font-menu (instantiate menu% ("Font" mb)))
+(append-editor-operation-menu-items edit-menu)
+(append-editor-font-menu-items font-menu)
+
 (define p (new xauen-pasteboard%))
 (define ec (new editor-canvas% (parent f)))
 
@@ -92,7 +98,7 @@
       (case key
         [(#\n) ;; C-n fr 'new'
          (debug 1 "add: ~a" key)
-         (let ([node (new node-snip%)])
+         (let ([node (make-node-snip)])
            (send target insert node)
            (if selected-snip
                (begin (add-links node selected-snip)
@@ -117,8 +123,14 @@
 ;; basic nodewrenching
 (define n1 (new output-snip%))
 (send p insert n1)
-
 (send p move-to n1 15 15)
+
+;; test a recursive node
+;(define r1 (new recursive-snip%))
+;(send p insert r1)
+;(define n2 (new output-snip%))
+;(send r1 insert n1)
+
 
 (send f show #t)
 

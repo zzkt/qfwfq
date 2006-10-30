@@ -21,9 +21,9 @@
 ;;  aims to provide a simple framework for testing VPL models, ideas
 ;;  or techniques. this code is based around the implicit assumption
 ;;  that a VPL will be a graph based representation which is mapable
-;;  to a sexp (or colelction of sexps), so some things should be 
+;;  to a sexp (or collection of sexps), so some things should be 
 ;;  reasonably common between different (although admittedly graph 
-;;  based) VPLs, for example tree traversal, node placement and layout.
+;;  based) VPLs, for example graph traversal, node placement and layout.
 ;;  it is not intended to be complete, exhaustive, or stable.
 
 ;; changes
@@ -43,7 +43,8 @@
   
   (provide graph-pasteboard% 
            node-snip% 
-           output-snip%           
+           output-snip%
+           ;recursive-snip%
            insert-nodes
            set-node-text
            get-node-text
@@ -95,8 +96,6 @@
       (init-field (value ()))
       (init-field (dirty #f))
       (inherit-field parent-links)
-      ;(inherit link)
-      
       (define/public (set-value v)
         (set! value v))
       (define/public (besmirch)
@@ -125,6 +124,20 @@
       (define/public (get-parent-links) parent-links)
       (super-new)))
   
+  ;; of suns, and of planets, and fields of wheat... 
+  (define (make-node-snip)
+    (new node-snip% 
+         (with-border? #t) 
+         (left-margin 3)
+         (top-margin 3)
+         (right-margin 4)
+         (bottom-margin 2)
+         (left-inset 1)
+         (top-inset 1)
+         (right-inset 1)
+         (bottom-inset 1)))
+  
+  
   ;; .. edges? 
   ;;  would require modifying private methods in graph. 
   ;;  see -> draw-non-self-connection for example
@@ -139,6 +152,16 @@
         (send (send this get-editor) erase)
         (eval-tree this))
       (super-new)))
+  
+  ;; a recursive-snip can contain other node-snips
+  ;(define recursive-snip-mixin 
+  ;  (mixin () (graph-snip<%>)))
+  
+  ;(define recursive-snip%
+  ;  (class (recursive-snip-mixin editor-snip%)  
+  ;    ;; details..
+  ;    (super-new)))
+  
   
   ;; node/graph utils,.
   (define (insert-nodes p . nodes)
@@ -198,7 +221,7 @@
         (begin
           (let ((size 5)
                 (root (car tree))
-                (node (new node-snip%)))          
+                (node (make-node-snip)))    
             (debug 2 "root: ~a ~%" root)         
             (draw-parse-tree root x y parent pb)
             ;; function node  
@@ -210,7 +233,7 @@
              (lambda (child)        
                (if (list? child)  
                    (draw-parse-tree child x y node pb)
-                   (let ((sibling (new node-snip%)))         
+                   (let ((sibling (make-node-snip)))         
                      (send pb insert sibling)
                      (add-links sibling node pen3 pen4 brush3 brush4)
                      (send (send sibling get-editor) insert (to-string child)))))
@@ -263,6 +286,7 @@
                  (set! result link))) links) result))
   
   ;; relabel
+  ;;  note that this uses a global so is not threadsafe
   (define *travail* 0)
   
   (define (re-label! link)
@@ -288,7 +312,7 @@
   
   ;; basic layout attmepts
   
-  ;;  traverse from a node, and s p  r   e   a  d  
+  ;;  traverse from a node, and  s p  r   e   a  d  
   (define (wobble-tree node pb)
     (let* ([parents (reverse (send node get-parents))]
            [n (length parents)]

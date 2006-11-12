@@ -38,8 +38,7 @@
 ;;  2006-09-11
 ;;  - scraped into coherence from various sources
 
-(require "graph.scm"
-         "qfwfq.scm") 
+(require "qfwfq.scm") 
 
 (define xauen-pasteboard%
   (class graph-pasteboard%
@@ -82,7 +81,7 @@
 ;; textmode input,. .
 (define input (new text-field% 
                    [label "inslkon >"] [parent f] [callback parse-text-input]
-                   [init-value "(* 3 4 5 (* 7 8 9))"]))
+                   [init-value "(* 3 4 5 (* 7 (+ 1 1 1) 9))"]))
 
 ;; keyboard overloading.., 
 (define (temp-keymap event)
@@ -95,30 +94,36 @@
       (debug 3 "key[de]maping->key: ~a ~%" key)
       (debug 1 "selected-snip: ~a ~%" selected-snip)
       (if (send event get-control-down)
-      (case key
-        [(#\n) ;; C-n fr 'new'
-         (debug 1 "add: ~a" key)
-         (let ([node (make-node-snip)])
-           (send target insert node)
-           (if selected-snip
-               (begin (add-links node selected-snip)
-                      ;; re.colour the tree, first [grand]child should do... 
-                      (colour-tree (car (send selected-snip get-children)) p)))
-           (send target move-to node x y)
-           )]
-        [(#\c) ;; C-c fr 'connect'
-         (let ([next (send target find-next-selected-snip selected-snip)])
-           (debug 1 "next-snip: ~a ~%" next)
-           (add-links selected-snip next))]
-        [(#\d) ;; C-d fr 'disconnect'
-         (let ([next (send target find-next-selected-snip selected-snip)])
-           (send selected-snip remove-child next)
-           (send selected-snip remove-parent next)
-           (send next remove-parent selected-snip)
-           (send next remove-child selected-snip))]
-        [(#\z) ;; C-z re.colour
-         (colour-tree selected-snip p)]
-        )))))
+          (case key
+            [(#\n) ;; C-n fr 'new'
+             (debug 1 "add: ~a" key)
+             (let ([node (make-node-snip)])
+               (send target insert node)
+               (if selected-snip
+                   (begin (add-links node selected-snip)
+                          ;; re.colour the tree, first [grand]child should do... 
+                          (colour-tree (car (send selected-snip get-children)) p)))
+               (send target move-to node x y)
+               )]
+            [(#\c) ;; C-c fr 'connect'
+             (let ([next (send target find-next-selected-snip selected-snip)])
+               (debug 1 "next-snip: ~a ~%" next)
+               (add-links selected-snip next))]
+            [(#\d) ;; C-d fr 'disconnect'
+             (let ([next (send target find-next-selected-snip selected-snip)])
+               (send selected-snip remove-child next)
+               (send selected-snip remove-parent next)
+               (send next remove-parent selected-snip)
+               (send next remove-child selected-snip))]
+            [(#\z) ;; C-z re.colour
+             (colour-tree selected-snip p)]
+            [(#\x) ;; C-x re.lapse
+             (shadowpi-tree selected-snip p 0 0 120)]
+            [(#\=) ;; C-= zoom->out
+             (send p zoom 1.1)]
+            [(#\-) ;; C-- zoom->in
+             (send p zoom 0.9)]
+            )))))
 
 ;; basic nodewrenching
 (define n1 (new output-snip%))
@@ -126,11 +131,10 @@
 (send p move-to n1 15 15)
 
 ;; test a recursive node
-;(define r1 (new recursive-snip%))
-;(send p insert r1)
-;(define n2 (new output-snip%))
-;(send r1 insert n1)
-
+;; (define r1 (new recursive-snip%))
+;; (send p insert r1)
+;; (define n2 (new output-snip%))
+;; (send r1 insert n1)
 
 (send f show #t)
 

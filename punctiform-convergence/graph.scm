@@ -1,4 +1,5 @@
-
+;; -*- mode: scheme -*-
+;;
 ;; modified version of graph.ss from mrlib as distributed with PLT Scheme v352
 
 (module graph mzscheme

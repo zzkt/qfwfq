@@ -191,35 +191,42 @@
   ;;;;; ;  ;;;     ;     ;
   
   (define twopi (* 2 pi))
+
   
-  (define (shadowpi-tree node pb x y r)
+  (define (shadowpi-tree node pb x y t1 t2 r)
+    ;; node from whcih to draw the layout, centred at x,y on the containment arc
+    ;; given by t1->t2 with radius, r
     (let* ([parents (reverse (send node get-parents))]
            [n (length parents)]
            [xi (snip-x node)] 
            [yi (snip-y node)]
-           (phi 0.85))
+           (phi 0.75))
       
-     ;; distribute parents of given node evenly along a containment circle
-     ;; centered on the node.
+      ;; distribute parents of given node evenly along a containment circle
+      ;; centered on the node.
       
-     (dotimes (i n)
-              (let ((parent (list-ref parents i))
-                    (x1 (* r (cos (* (/ 1 pi)
-                                     (- (/ n 2) (+ 1 i))))))
-                    (y1 (* r (sin (* (/ 1 pi)
-                                     (- (/ n 2) (+ 1 i)))))))
-                (send pb move-to parent
-                      (+ xi x1) (+ yi y1))
+      (dotimes (i n)
+               (let ((parent (list-ref parents i))
+                     (x1 (* r (cos (* (* (+ t1 (- t2 t1)) (/ i n))))))
+                     (y1 (* r (sin (* (* (+ t1 (- t2 t1)) (/ i n)))))))
+                 (send pb move-to parent
+                       (+ xi x1) (+ yi y1))
                
-     ;; draw circles around the node’s parents and evenly distribute their
-     ;; parents along containment arcs. 
+                 ;; draw circles around the node’s parents and evenly distribute their
+                 ;; parents along containment arcs. 
 
-                (shadowpi-tree parent pb (+ xi x1) (+ yi y1) (* r phi))
+                 (shadowpi-tree parent pb
+                                (+ xi x1) (+ yi y1) ;; centred on
+                                
+                                (atan (/ (- y1 yi) (- x1 xi)))
+                                (+ pi (atan (/ (- y1 yi) (- x1 xi))))
+                                     
+                                 (* r phi)) ;; radius
               
-     ;; this proceeds recursively, so that successively distant descendants of
-     ;; the goven node are positioned on successively smaller containment arcs.
+                 ;; this proceeds recursively, so that successively distant descendants of
+                 ;; the goven node are positioned on successively smaller containment arcs.
 
-     ))))
+                 ))))
   
 
   ) ;; end of module

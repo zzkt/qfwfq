@@ -205,23 +205,29 @@
       ;; distribute parents of given node evenly along a containment circle
       ;; centered on the node.
       
-      (dotimes (i n)
-               (let ((parent (list-ref parents i))
-                     (x1 (* r (cos (* (* (+ t1 (- t2 t1)) (/ i n))))))
-                     (y1 (* r (sin (* (* (+ t1 (- t2 t1)) (/ i n)))))))
+      (dotimes (k n)
+               (let ((parent (list-ref parents k))
+                     (x1 (* r (cos (* (+ t1 (- t2 t1)) (/ k n)))))
+                     (y1 (* r (sin (* (+ t1 (- t2 t1)) (/ k n))))))
                  (send pb move-to parent
                        (+ xi x1) (+ yi y1))
                
                  ;; draw circles around the node’s parents and evenly distribute their
                  ;; parents along containment arcs. 
 
+                 (debug 1 "----~a~% x1:~a~% y1:~a~% t1':~a~% t2':~a~%"
+                        parent
+                        x1 y1
+                        (- (/ pi 2) (atan (/ (- yi y1) (- xi x1))))
+                        (+ (/ pi 2) (atan (/ (- yi y1) (- xi x1)))))
+                 
                  (shadowpi-tree parent pb
                                 (+ xi x1) (+ yi y1) ;; centred on
                                 
-                                (atan (/ (- y1 yi) (- x1 xi)))
-                                (+ pi (atan (/ (- y1 yi) (- x1 xi))))
-                                     
-                                 (* r phi)) ;; radius
+                                (- (atan (/ (- yi y1) (- xi x1))) (/ pi 2))
+                                (+ (/ pi 2) (atan (/ (- yi y1) (- xi x1))))
+                                 
+                                (* r phi)) ;; radius
               
                  ;; this proceeds recursively, so that successively distant descendants of
                  ;; the goven node are positioned on successively smaller containment arcs.

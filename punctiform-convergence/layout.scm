@@ -196,7 +196,7 @@
   (define (shadowpi-tree node pb x y t1 t2 r)
     ;; node from whcih to draw the layout, centred at x,y on the containment arc
     ;; given by t1->t2 with radius, r
-    (let* ([parents (reverse (send node get-parents))]
+    (let* ([parents (send node get-parents)]
            [n (length parents)]
            [xi (snip-x node)] 
            [yi (snip-y node)]
@@ -215,17 +215,11 @@
                  ;; draw circles around the node’s parents and evenly distribute their
                  ;; parents along containment arcs. 
 
-                 (debug 1 "----~a~% x1:~a~% y1:~a~% t1':~a~% t2':~a~%"
-                        parent
-                        x1 y1
-                        (- (/ pi 2) (atan (/ (- yi y1) (- xi x1))))
-                        (+ (/ pi 2) (atan (/ (- yi y1) (- xi x1)))))
-                 
                  (shadowpi-tree parent pb
                                 (+ xi x1) (+ yi y1) ;; centred on
                                 
-                                (- (atan (/ (- yi y1) (- xi x1))) (/ pi 2))
-                                (+ (/ pi 2) (atan (/ (- yi y1) (- xi x1))))
+                                (- (atan (/ (- yi (+ yi y1)) (- xi (+ xi x1)))) (/ pi 2))
+                                (+ (/ pi n) (atan (/ (- yi y1) (- xi x1))))
                                  
                                 (* r phi)) ;; radius
               
@@ -234,5 +228,4 @@
 
                  ))))
   
-
   ) ;; end of module

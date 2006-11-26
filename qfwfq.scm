@@ -59,6 +59,7 @@
            relax-tree
            eval-tree
            shadowpi-tree
+           shadowtwopi-tree
            
            tree->sexp
            to-string

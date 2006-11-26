@@ -41,7 +41,8 @@
   (provide wobble-tree
            shuffle-tree
            relax-tree
-           shadowpi-tree)
+           shadowpi-tree
+           shadowtwopi-tree)
 
   
   ;;;;;; ; ; ;;    ;;;; ;;    ;  ;; 
@@ -184,48 +185,50 @@
   ;; for interactive graph visualization and animation" by Andrew Pavlo,
   ;; Christopher Homan & Jonathan Schull
   ;;
-  ;; - since each node may have any number of parents, yet only a single child,
-  ;; thi sinterpretation of the algorithm is essentially the same, if 'children'
-  ;; is read as 'parents'
-  ;; 
   ;;;;; ;  ;;;     ;     ;
   
   (define twopi (* 2 pi))
 
-  
-  (define (shadowpi-tree node pb x y t1 t2 r)
-    ;; node from whcih to draw the layout, centred at x,y on the containment arc
-    ;; given by t1->t2 with radius, r
+  (define (shadowpi-tree node pb theta r)
+    ;; given a node from which to draw the layout, angle theta, radius, r
     (let* ([parents (send node get-parents)]
-           [n (length parents)]
+           [e  (length parents)]
            [xi (snip-x node)] 
            [yi (snip-y node)]
-           (phi 0.75))
-      
+           (b  (/ pi (if (eq? e 0) 1 e)))
+           (a  (- (+ theta (/ pi 2)) (/ b 2)))
+           (r1 (* 2 r (sin (/ b 2)))))
+
       ;; distribute parents of given node evenly along a containment circle
       ;; centered on the node.
-      
-      (dotimes (k n)
-               (let ((parent (list-ref parents k))
-                     (x1 (* r (cos (* (+ t1 (- t2 t1)) (/ k n)))))
-                     (y1 (* r (sin (* (+ t1 (- t2 t1)) (/ k n))))))
-                 (send pb move-to parent
-                       (+ xi x1) (+ yi y1))
-               
-                 ;; draw circles around the node’s parents and evenly distribute their
-                 ;; parents along containment arcs. 
+      (for-each (lambda (parent)
+                  (let ((x1 (+ xi (* r (cos a))))
+                        (y1 (+ yi (* r (sin a)))))
+                    (send pb move-to parent x1 y1)
+                    (shadowpi-tree parent pb a r1)
+                    (set! a (- a b))))
+                parents)))
 
-                 (shadowpi-tree parent pb
-                                (+ xi x1) (+ yi y1) ;; centred on
-                                
-                                (- (atan (/ (- yi (+ yi y1)) (- xi (+ xi x1)))) (/ pi 2))
-                                (+ (/ pi n) (atan (/ (- yi y1) (- xi x1))))
-                                 
-                                (* r phi)) ;; radius
-              
-                 ;; this proceeds recursively, so that successively distant descendants of
-                 ;; the goven node are positioned on successively smaller containment arcs.
+  
+  (define (shadowtwopi-tree node pb theta r)
+    ;; given a node from which to draw the layout, angle theta, radius, r
+    (let* ([parents (send node get-parents)]
+           [e  (length parents)]
+           [xi (snip-x node)] 
+           [yi (snip-y node)]
+           (b  (/ twopi  (if (eq? e 0) 1 e)))
+           (a  (- (+ theta (/ pi 2)) (/ b 2)))
+           (r1 (* 2 r (sin (/ b 2)))))
 
-                 ))))
+      ;; distribute parents of given node evenly along a containment circle
+      ;; centered on the node.
+      (for-each (lambda (parent)
+                  (let ((x1 (+ xi (* r (cos a))))
+                        (y1 (+ yi (* r (sin a)))))
+                    (send pb move-to parent x1 y1)
+                    (shadowpi-tree parent pb a r1)
+                    (set! a (- a b))))
+                parents)))
+
   
   ) ;; end of module

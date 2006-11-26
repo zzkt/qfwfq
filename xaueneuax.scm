@@ -118,7 +118,7 @@
             [(#\z) ;; C-z re.colour
              (colour-tree selected-snip p)]
             [(#\l) ;; C-x re.lapse
-             (shadowpi-tree selected-snip p 10 10 0 (* 2 pi) 120)]
+             (shadowtwopi-tree selected-snip p 0 80)]
             [(#\=) ;; C-= zoom->out
              (send p zoom 1.1)]
             [(#\-) ;; C-- zoom->in

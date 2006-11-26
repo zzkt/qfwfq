@@ -77,7 +77,7 @@
         (draw-parse-tree input 1 1 node pasteboard)
         (eval-tree node)
         ;(set-node-text node (eval input))
-        (wobble-tree n1 p)))) 
+        (circles-tree n1 p 100 100 0 6.28 10)))) 
 
 ;; textmode input,. .
 (define input (new text-field% 

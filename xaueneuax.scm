@@ -77,6 +77,7 @@
         (draw-parse-tree input 1 1 node pasteboard)
         (eval-tree node)
         ;(set-node-text node (eval input))
+        ;(shadowpi-tree n1 p 0 50))))
         (circles-tree n1 p 100 100 0 6.28 10)))) 
 
 ;; textmode input,. .

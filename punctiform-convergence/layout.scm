@@ -1,6 +1,6 @@
 ;; -*- mode: scheme -*-
 ;;
-;; basic layout attmepts
+;; basic layout attempts
 ;;
 ;; copyright (C) 2004 FoAM vzw
 ;;  You are granted the rights to distribute and use this software 
@@ -12,12 +12,13 @@
 
 ;; authors
 ;;  - nik gaffney <nik@fo.am>
+;;  - tim boykett <tim@timesup.org>
 
 ;; requirements
-;;  - 
+;;  - qfwfq and descendants
 
 ;; commentary
-;;  - wobble -> heirarchical rectangular spread 
+;;  - wobble -> hierarchical rectangular spread 
 ;;  - shuffle -> randomise positions    
 ;;  - relax -> pseudo stabilisation using edge lengths 
 ;;  - shadowpi -> variation on circular parent-centric splay
@@ -26,7 +27,9 @@
 ;;  2006-09-11
 ;;  - scraped into coherence from various sources
 ;;  2006-11-12
-;;  - mottled shadows, multiple beginings
+;;  - mottled shadows, multiple beginning
+;;  2006-11-26
+;;  - reshaping showdowpi with help from Dr Boykett
 
 
 (module layout mzscheme
@@ -41,8 +44,7 @@
   (provide wobble-tree
            shuffle-tree
            relax-tree
-           shadowpi-tree
-           shadowtwopi-tree)
+           shadowpi-tree)
 
   
   ;;;;;; ; ; ;;    ;;;; ;;    ;  ;; 
@@ -98,7 +100,7 @@
   ;;;;; ;;;;;; ;;     ; ;;     ;
   ;;
   ;; energy stabilisation
-  ;; - single itteration only, call as reqd.
+  ;; - single iteration only, call as reqd.
   ;; - local epsilon & delta only
   ;; 
   ;;;;; ;  ;;;     ;     ;
@@ -177,6 +179,7 @@
   (define (-ve n)
     (- 0 n))
 
+  
   ;;;;;;;;;;; ;;     ; ;;     ;
   ;;
   ;; circular parent centric layout, in the shade of twopi
@@ -195,7 +198,7 @@
            [e  (length parents)]
            [xi (snip-x node)] 
            [yi (snip-y node)]
-           (b  (/ pi (if (eq? e 0) 1 e)))
+           (b  (/ pi (if (eq? e 0) 1 e))) ;; twopi -> full circle
            (a  (- (+ theta (/ pi 2)) (/ b 2)))
            (r1 (* 2 r (sin (/ b 2)))))
 
@@ -208,27 +211,6 @@
                     (shadowpi-tree parent pb a r1)
                     (set! a (- a b))))
                 parents)))
-
-  
-  (define (shadowtwopi-tree node pb theta r)
-    ;; given a node from which to draw the layout, angle theta, radius, r
-    (let* ([parents (send node get-parents)]
-           [e  (length parents)]
-           [xi (snip-x node)] 
-           [yi (snip-y node)]
-           (b  (/ twopi  (if (eq? e 0) 1 e)))
-           (a  (- (+ theta (/ pi 2)) (/ b 2)))
-           (r1 (* 2 r (sin (/ b 2)))))
-
-      ;; distribute parents of given node evenly along a containment circle
-      ;; centered on the node.
-      (for-each (lambda (parent)
-                  (let ((x1 (+ xi (* r (cos a))))
-                        (y1 (+ yi (* r (sin a)))))
-                    (send pb move-to parent x1 y1)
-                    (shadowpi-tree parent pb a r1)
-                    (set! a (- a b))))
-                parents)))
-
   
   ) ;; end of module
+

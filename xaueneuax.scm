@@ -1,7 +1,7 @@
 ;; -*- mode: scheme -*-
 ;;
 ;; x a u e n e u a x  - nqdataflow
-;;
+;;  
 ;; copyright (C) 2004 FoAM vzw
 ;;  You are granted the rights to distribute and use this software 
 ;;  under the terms of the GNU Lesser General Public License as 
@@ -23,8 +23,9 @@
 ;;
 ;;  keyboard controls
 ;;   C-n - adds new node, connected to a selected node
-;;   C-c - conencts 2 selected nodes
+;;   C-c - connects 2 selected nodes
 ;;   C-d - disconnects selected node
+;;   C-l - autolayout from selcted node
 ;;   delete - deletes node
 ;;   enter - evaluates current node 
 
@@ -117,8 +118,8 @@
                (send next remove-child selected-snip))]
             [(#\z) ;; C-z re.colour
              (colour-tree selected-snip p)]
-            [(#\l) ;; C-x re.lapse
-             (shadowtwopi-tree selected-snip p 0 80)]
+            [(#\l) ;; C-l re.lapse -> splay
+             (shadowpi-tree selected-snip p 0 63)]
             [(#\=) ;; C-= zoom->out
              (send p zoom 1.1)]
             [(#\-) ;; C-- zoom->in

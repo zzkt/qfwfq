@@ -45,6 +45,7 @@
            node-snip% 
            output-snip%
            recursive-snip%
+           make-node-snip
            insert-nodes
            add-links
            

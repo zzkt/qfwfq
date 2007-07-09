@@ -11,7 +11,7 @@ further documentation can be found in the folder 't-zero' and several examples
 can be found in the folder 'games without end'
 
 libarynth topics
- http://libarynth.fo.am/cgi-bin/view/Libarynth/VisualProgramming
- http://libarynth.fo.am/cgi-bin/view/Libarynth/ProjectQfwfq
+ http://libarynth.org/visual_programming
+ http://libarynth.org/project_qfwfq
 
 

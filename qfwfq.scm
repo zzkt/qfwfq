@@ -49,6 +49,10 @@
            insert-nodes
            add-links
            
+           selected-snips
+           find-inputs
+           find-outputs
+           
            set-node-text
            get-node-text
            set-node-value
@@ -60,6 +64,9 @@
            relax-tree
            eval-tree
            shadowpi-tree
+           circles-tree
+
+           encapsulate
            
            tree->sexp
            to-string

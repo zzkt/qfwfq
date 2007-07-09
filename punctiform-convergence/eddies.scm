@@ -155,9 +155,10 @@
   
   ;; a recursive-snip can contain other node-snips,.
   ;; should be incorporated into basic node-snips
-  ;(define recursive-snip-mixin 
-  ;  (mixin (graph-snip<%>) (editor<%>)))
   
+;;  (define recursive-snip% 
+;;     (graph-snipboard-mixin editor-snip%))
+
   (define recursive-snip%
     (class (graph-snip-mixin editor-snip%) 
       ;; details..
@@ -195,6 +196,10 @@
           ((list? x) (apply string-append (map to-string x))) 
           (else (error "don't know how to convert to string: " x))))
   
+  ;; copypaste 
+  (define (copypaste pb)
+    (debug 1 "selection: " (selected-snips pb))
+    )
   
   ;; decor
   ;; brushes/ pens see -> 6.15  pen%
@@ -289,7 +294,7 @@
                  (set! result link))) links) result))
   
   ;; relabel
-  ;;  note that this uses a global so is not threadsafe
+  ;;  note that this uses a mutable global so is not threadsafe
   (define *travail* 0)
   
   (define (re-label! link)
@@ -313,6 +318,11 @@
             (list-ref c 2) 
             (list-ref c 3)))
   
+  ;;;; ; ;;; ;  ;   ;  ; ; ;   ;
+  ;;
+  ;; translation, evaluation, circumspection
+  ;;
+  ;;;;;; ;   ;;  ;
   
   ;; eval [sub]graph from a node. ..
   ;;  absolutely no chekcing or error handling yet.
@@ -321,7 +331,7 @@
                    (eval (tree->sexp (car (send node get-parents))))))
   
   ;; traverse a tree [or graph] to create a corresponding s-expresion
-  ;; doesnt cope with cycles, nor muliple children (if a node has muliple
+  ;; doesnt cope with cycles, nor multiple children (if a node has muliple
   ;; children, it is translated into separate expressions)  
   (define (tree->sexp node)
     (let ([parents (send node get-parents)]
@@ -333,6 +343,79 @@
           (set! out (read-from-string data)))
       (debug 1 "tree->sexp: ~a ~%" out)         
       out))
+
+  ;; return a list of the selected snips
+  (define (selected-snips pb) 
+    (let* ((snip (send pb find-next-selected-snip #f))
+           (selection (list snip)))
+      (while snip
+        (set! snip (send pb find-next-selected-snip snip))
+        (if snip
+            (set! selection (cons snip selection)) #f))
+      selection))
+
+  
+  ;; convert a given selection to a (pseudonymous) function, given a list of
+  ;; nodes, and a pasteboard to draw to. namespace is currently unspecified,
+  ;; values not yet multiple.
+  (define (encapsulate selection pb)
+    (let* ((fname (string->symbol (symbol->string (gensym "q-"))))
+          (nodes selection)
+          (inputs (find-inputs nodes))
+          (outputs (find-outputs nodes)))
+
+      (debug 1 "function: ~a~%" fname)
+      (debug 1 "nodes: ~a~%" nodes)
+      (debug 1 "input: ~a~%" inputs)
+      (debug 1 "outpt: ~a~%" outputs)
+
+      ;; subtree -> leaves ie. no inputs, single output
+      (cond ((empty? inputs)
+             (debug 1 "grnks...~%")
+             (let* ((fnode (make-node-snip))
+                   (prune (caar outputs)) ;; map -> multiple
+                   (graft (cadar outputs)))
+               
+               (debug 1 "prune ~a~%" prune)
+               (debug 1 "graft ~a -> ~a ~% " graft (send graft get-parents))
+               (send pb insert fnode)
+               (add-links fnode graft pen1 pen2 brush1 brush2)
+               (send (send fnode get-editor) insert (format "(~a)" (to-string fname)))
+               (send graft remove-parent prune)
+               (debug 1 "fdef ~a ~%"
+                      (eval `(define ,fname (lambda () ,(tree->sexp prune)))))
+                           
+      )))))
+
+            
+            
+  ;; find the nodes leading into/outof a subgraph, given as a list returns a
+  ;; list of lists (node in the subgraph, followed by nodes to which it
+  ;; connects)
+
+  (define (find-inputs nodes)
+    (if nodes
+        (let ((inputs
+               (filter
+                (lambda (l) (< 1 (length l)))
+                (map
+                  (lambda (node)
+                    (cons node (remove* nodes (send node get-parents))))
+                  nodes))))
+          inputs)
+        #f))
+  
+  (define (find-outputs nodes)
+    (if nodes
+        (let ((outputs
+               (filter
+                (lambda (l) (< 1 (length l)))
+                (map
+                  (lambda (node)
+                    (cons node (remove* nodes (send node get-children))))
+                  nodes))))
+          outputs)
+        #f))
   
 
   ) ;; end of module

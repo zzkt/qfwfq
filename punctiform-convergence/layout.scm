@@ -13,15 +13,18 @@
 ;; authors
 ;;  - nik gaffney <nik@fo.am>
 ;;  - tim boykett <tim@timesup.org>
+;;  - dave griffiths <dave@pawfal.org>
 
 ;; requirements
 ;;  - qfwfq and descendants
 
 ;; commentary
 ;;  - wobble -> hierarchical rectangular spread 
-;;  - shuffle -> randomise positions    
+;;  - shuffle -> randomise positions
 ;;  - relax -> pseudo stabilisation using edge lengths 
+;;  - circles -> concentric radial layout
 ;;  - shadowpi -> variation on circular parent-centric splay
+
 
 ;; changes
 ;;  2006-09-11
@@ -44,6 +47,7 @@
   (provide wobble-tree
            shuffle-tree
            relax-tree
+           circles-tree
            shadowpi-tree)
 
   
@@ -108,28 +112,26 @@
   ;;;;; ;   ;; ;;    ;   ;
   
   (define (circles-tree node pb x y angle-start angle-end radius)
-    ; loop over all parents for this node
+    ;; loop over all parents for this node
     (define (parent-loop parents n angle-per-parent)
-      ; calculate the section of angles for this node, and call circles-tree for it
+      ;; calculate the section of angles for this node, and call circles-tree for it
       (let ([parent-start (+ angle-start (* angle-per-parent n))])
         (circles-tree (car parents) pb x y parent-start (+ parent-start angle-per-parent) (+ radius 50)))
-      (if (null? (cdr parents))
-            0
-            (parent-loop (cdr parents) (+ n 1) angle-per-parent)))
+      (if (not (null? (cdr parents)))
+          (parent-loop (cdr parents)
+                       (+ n 1) angle-per-parent)))
    
-    ; position this in the middle of the range of angles we've been given
+    ;; position this in the middle of the range of angles we've been given
     (send pb move node 
-      (* (sin (+ angle-start (/ (- angle-end angle-start) 2))) radius)
-      (* (cos (+ angle-start (/ (- angle-end angle-start) 2))) radius))
+          (* (sin (+ angle-start (/ (- angle-end angle-start) 2))) radius)
+          (* (cos (+ angle-start (/ (- angle-end angle-start) 2))) radius))
    
-    ; now call parent-loop for the parents if we have any parents
+    ;; now call parent-loop for the parents if we have any parents
     (let ([parents (send node get-parents)])
-    (cond 
-      ((null? parents)
-          0)
-      (else
-       (let ([angle-per-parent (/ (- angle-end angle-start) (length parents))])
-          (parent-loop parents 0 angle-per-parent))))))
+      (if (not (null? parents))
+          (let ([angle-per-parent (/ (- angle-end angle-start)
+                                     (length parents))])
+            (parent-loop parents 0 angle-per-parent)))))
       
      
  
@@ -225,7 +227,7 @@
   ;; Christopher Homan & Jonathan Schull
   ;;
   ;;;;; ;  ;;;     ;     ;
-  
+
   (define twopi (* 2 pi))
 
   (define (shadowpi-tree node pb theta r)

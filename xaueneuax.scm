@@ -14,7 +14,7 @@
 ;;  - nik gaffney <nik@fo.am>
 
 ;; requirements
-;;  - uses qfwfq for layout and slipulation
+;;  - uses qfwfq for layout and slipping between
 
 ;; commentary
 ;;  a simple dataflow like visual wrapper to the underlying scheme,
@@ -41,12 +41,15 @@
 
 (require "qfwfq.scm") 
 
+
 (define xauen-pasteboard%
   (class graph-pasteboard%
     ;; should probably figure out how keymaps work,. 
     (define/override (on-char event)
       (temp-keymap event)
       (super on-char event))
+    (define/override (do-paste time)
+      (super do-paste time))
     (super-new)))
 
 ;; setup frame and windows.. 
@@ -121,6 +124,8 @@
              (colour-tree selected-snip p)]
             [(#\l) ;; C-l re.lapse -> splay
              (shadowpi-tree selected-snip p 0 63)]
+            [(#\e) ;; C-e encapsulate the selection
+             (encapsulate (selected-snips p) p)]
             [(#\=) ;; C-= zoom->out
              (send p zoom 1.1)]
             [(#\-) ;; C-- zoom->in
@@ -133,11 +138,10 @@
 (send p move-to n1 15 15)
 
 ;; test a recursive node
-;; (define r1 (new recursive-snip%))
-;; (send p insert r1)
-;; (define n2 (new output-snip%))
-;; (send r1 insert n1)
+;(define r1 (new recursive-snip%))
+;(send p insert r1)
+;(define n2 (new output-snip%))
+;(send r1 insert n1)
 
 (send f show #t)
-
 

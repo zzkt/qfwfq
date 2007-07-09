@@ -12,7 +12,10 @@
   (provide graph-snip<%>
            graph-snip-mixin
            graph-pasteboard<%>
-           graph-pasteboard-mixin)
+           graph-pasteboard-mixin
+           graph-snipboard<%>
+           graph-snipboard-mixin)
+           
   
   (define graph-snip<%>
     (interface ()
@@ -275,12 +278,13 @@
       
       (define/augment (on-interactive-move evt)
         (invalidate-selected-snips)
-        #;(super on-interactive-move evt)
+        ;;(super on-interactive-move evt)
         )
       
       (define/augment (after-interactive-move evt)
         (invalidate-selected-snips)
-        #;(super on-interactive-move evt))
+        ;;(super on-interactive-move evt)
+        )
       
       (define/override (interactive-adjust-move snip x y)
         (let ([dc (get-dc)])
@@ -292,7 +296,8 @@
         (let ([dc (get-dc)])
           (when dc
             (invalidate-to-children/parents snip dc)))
-        #;(super after-insert snip before x y))
+        ;;(super after-insert snip before x y)
+        )
       
       ;; invalidate-selected-snips : -> void
       ;; invalidates the region around the selected
@@ -775,7 +780,8 @@
                                            [(x) (/ (+ from-x to-x) 2)]
                                            [(y) (/ (+ from-y to-y) 2)]
                                            [(theta) (- (angle (- to-pt from-pt)))] 
-                                           [(flip?) #f #;(negative? (- to-x from-x))]
+                                           [(flip?) #f ] ;(negative? (- to-x from-x))
+                                            
                                            [(text-angle) 
                                             (if flip?
                                                 (+ theta pi)
@@ -1050,5 +1056,32 @@
   
   ;; get-all-parents : snip -> (listof snip)
   (define (get-all-parents snip)
-    (get-all-relatives (lambda (snip) (send snip get-parents)) snip)))
+    (get-all-relatives (lambda (snip) (send snip get-parents)) snip))
+
+
+  
+  ;; merge graph-snips and pasteboard, for which there must be a simpler way...
+  (define graph-snipboard<%>
+    (interface ()
+      get-children 
+      add-child
+      remove-child
+      
+      get-parents
+      add-parent
+      remove-parent
+      has-self-loop?
+      find-shortest-path
+      
+      on-mouse-over-snips
+      set-arrowhead-params
+      get-arrowhead-params))
+
+  (define graph-snipboard-mixin
+    (mixin ((class->interface pasteboard%)) (graph-pasteboard<%>))
+    ;;(mixin ((class->interface snip%)) (graph-snip<%>))
+    )
+
+           
+  )
 

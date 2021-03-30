@@ -1,0 +1,135 @@
+# -*- mode: org; coding: utf-8; -*-
+#+LaTeX_CLASS: zzkt-article
+#+LateX_Header: \setcounter{secnumdepth}{0}
+#+LATEX_HEADER: \renewcommand{\contentsname}{Tutte le cosmicomiche}
+#+OPTIONS: toc:2
+#+author:
+#+title: qfwfq — an overview
+
+#+BEGIN_export latex
+\clearpage
+#+END_export
+
+** Introduction
+
+#+begin_quote
+“...the ubiquitous Qfwfq, is emblematic of unity amidst the heteroglossic variety of possibilities offered by expanded degrees of perception made possible by scientific devices. In one story, Qfwfq is a dinosaur, but in other stories he is also a fish, a small mammal, a subatomic particle eternally plummeting through the void. Qfwfq's constantly shifting position in the universe, despite his consistent first-person narration, suggests the extent to which his form accommodates his point of view.”
+—Dean Swinford
+#+end_quote
+
+* Le Cosmicomiche (cosmicomics)
+
+** The Distance of the Moon
+
+** At Daybreak
+
+** A Sign in Space
+
+- names and naming, scratching temporary references to the shifting, until the space itself could not exist independent of the signs forming it.
+- taming the unnamed. drawing the nameless, sprawling into the realm of description through imposition of signs, names and references.
+- bindings and scope.
+
+** All at One Point
+
+** Without Colours
+
+establishing similarity and difference. "sand. not-sand", "you-not-I", "you-like-I, but only so much". same, similar, and substantially indistinguisable. eq? eqv? and boolean operators.
+
+** Games Without End
+
+Recursion, and mutual engagement, creating the space as we go…
+
+** The Aquatic Uncle
+
+#+begin_quote
+"In 'The Aquatic Uncle,' which precedes the story of the last dinosaur, Qfwfq, here featured as some sort of protoamphibian, venerates the reptilian and eschews his ichthyoid 'roots. In Cosmicomics, Qfwfq encompasses all points of view except for non-existence. As a result, his various incarnations cannot be contrasted: they are all linked to one another. While Qfwfq venerates the reptilian and consciously attempts to conceal his water-bound past, in 'The Dinosaurs,' none of the mammals recognize that Qfwfq, a dinosaur, is actually a dinosaur."
+—Dean Swinford
+#+end_quote
+
+learning to swim, creatures who are too proud of their legs, history and superstition, parallel worlds and ffi.
+
+** How Much Shall We Bet?
+
+probability, chance and ambivalence, the 'random' and 'amb' operators
+
+** The Dinosaurs
+
+** The Form of Space
+
+** The Lightyears
+
+** The Spiral
+
+#+BEGIN_example
+     (require (lib "40.ss" "srfi"))
+     (define (fibgen a b)
+       (stream-cons a (fibgen b (+ a b))))
+
+     (define fibonacci (fibgen ** 1))
+#+END_example
+
+
+* TI CON ZERO (Time and the Hunter)
+
+** The Soft Moon
+** The Origin of the Birds
+** Crystals
+** Blood, Sea
+** Mitosis
+
+** Meiosis
+
+** Death
+
+** t zero
+
+** The Chase
+
+** The Night Driver
+
+** The Count of Monte Cristo
+
+
+* ALTRE STORIE COSMICOMICHE
+
+** La Luna come un fungo
+
+** Le figlie della Luna
+
+** I meteoriti
+
+** Il cielo di pietra
+
+** Fino a che dura il Sole
+
+** Tempesta solare
+
+** Le conchiglie e il tempo
+
+** La memoria del mondo
+
+
+* COSMICOMICHE NUOVE
+
+** Il niente e il poco
+
+** L'implosione
+
+
+* UNA COSMICOMICA TRANSFORMATA
+
+** L'altra Euridice
+
+#+BEGIN_example
+(eval 'apply)
+#+END_example
+
+* NOTES
+
+** Bibliography
+
+- Italo Calvino. 'Tutte le cosmicomiche' edizione Mondadori 1997
+- Italo Calvino. 'Cosmicomics' picador edition 1993. translated by William Weaver
+- Italo Calvino. 'Time and the Hunter' picador edition 1993. translated by William Weaver
+- Dean Swinford. 'Defining irrealism: scientific development and allegorical possibility'
+- Hal Abelson's, Jerry Sussman's and Julie Sussman. Structure and Interpretation of Computer Programs
